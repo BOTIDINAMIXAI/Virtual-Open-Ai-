@@ -1,0 +1,54 @@
+/* Estilos generales */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+/* Estilos para el contenedor del chat */
+.stApp {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos para los mensajes del chat */
+.stChatMessage {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+/* Estilos para los mensajes del usuario */
+.stChatMessage [data-testid="chat-message-text"]:first-of-type {
+    background-color: #e0f2f1; /* Color de fondo claro para el usuario */
+    color: #333; /* Texto oscuro */
+    text-align: left; 
+}
+
+/* Estilos para los mensajes del asistente */
+.stChatMessage:not([data-testid="chat-message-text"]:first-of-type) {
+    background-color: #fff; /* Color de fondo blanco para el asistente */
+    color: #333; /* Texto oscuro */
+    text-align: left;
+}
+
+/* Estilos para el área de entrada de texto */
+.stChatInputContainer {
+    padding: 10px;
+    background-color: #fff;
+    border-top: 1px solid #ddd;
+}
+
+.stChatInputContainer textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+}
+
