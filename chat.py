@@ -1,6 +1,6 @@
-from dotenv import load_dotenv
 import streamlit as st
 import openai
+from dotenv import load_dotenv
 import nltk
 import os
 import tempfile
@@ -8,6 +8,9 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 import PyPDF2
+import time
+from gtts import gTTS
+import io
 
 # Configuración de NLTK
 nltk.download('punkt')
@@ -39,27 +42,31 @@ def preprocesar_texto(texto):
 
 # Cargar la clave API desde el archivo .env
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-if not api_key:
-    st.error("La clave API de OpenAI no está configurada. Por favor, asegúrate de que el archivo .env contiene la clave API correctamente.")
-    st.stop()
-
-# Establecer la clave API
-openai.api_key = api_key
-
-# Función para obtener respuesta de OpenAI usando el modelo GPT
+# Función para obtener respuesta de OpenAI usando el modelo GPT y convertir a audio
 def obtener_respuesta(pregunta, texto_preprocesado, modelo, temperatura=0.5):
     try:
-        respuesta = openai.ChatCompletion.create(
+        response = openai.ChatCompletion.create(
             model=modelo,
             messages=[
-                {"role": "system", "content": "Eres un asistente útil."},
+                {"role": "system", "content": "Actua como Galatea la asistente de la clinica Odontologica OMARDENT y resuelve las inquietudes"},
                 {"role": "user", "content": f"{pregunta}\n\nContexto: {texto_preprocesado}"}
             ],
             temperature=temperatura
         )
-        return respuesta.choices[0].message['content'].strip()
+        respuesta = response.choices[0].message['content'].strip()
+
+        # Convertir la respuesta a audio
+        tts = gTTS(text=respuesta, lang='es')
+        audio_bytes = io.BytesIO()
+        tts.write_to_fp(audio_bytes)
+        audio_bytes.seek(0)
+
+        # Mostrar la respuesta en texto y audio
+        st.audio(audio_bytes, format="audio/mp3")
+        return respuesta
+
     except openai.OpenAIError as e:
         st.error(f"Error al comunicarse con OpenAI: {e}")
         return "Lo siento, no puedo procesar tu solicitud en este momento."
@@ -70,18 +77,15 @@ def main():
 
     # --- Barra lateral ---
     with st.sidebar:
-        st.image("logo omardent.png")  # Reemplaza con la ruta de tu logo
+        st.image("logo omardent.png")
         st.title("🤖 Asistente Virtual BOTIDINAMIX AI")
         st.markdown("---")
-
-        # Carga de archivo PDF
-        archivo_pdf = st.file_uploader("📂 Cargar PDF", type='pdf')
 
         # Selección de modelo de lenguaje
         st.subheader("🧠 Configuración del Modelo")
         modelo = st.selectbox(
             "Selecciona el modelo:",
-            ["gpt-3.5-turbo", "gpt-4","gpt-4o","gpt-4-32k","gpt-4-32k","gpt-3.5-turbo-16k,"],
+             ["gpt-3.5-turbo", "gpt-4","gpt-4o","gpt-4-32k","gpt-4-32k","gpt-3.5-turbo-16k,"],
             index=0,
             help="Elige el modelo de lenguaje de OpenAI que prefieras."
         )
@@ -122,6 +126,9 @@ def main():
     # --- Área principal de la aplicación ---
     st.header("💬 Hablar con Galatea OMARDENT")
 
+    # Carga de archivo PDF
+    archivo_pdf = st.file_uploader("📂 Cargar PDF", type='pdf')
+
     # --- Chatbot ---
     if 'mensajes' not in st.session_state:
         st.session_state.mensajes = []
@@ -139,14 +146,13 @@ def main():
         if archivo_pdf:
             texto_pdf = extraer_texto_pdf(archivo_pdf)
             texto_preprocesado = preprocesar_texto(texto_pdf)
-            respuesta = obtener_respuesta(pregunta_usuario, texto_preprocesado, modelo, temperatura=temperatura)
-            st.session_state.mensajes.append({"role": "assistant", "content": respuesta})
-            with st.chat_message("assistant"):
-                st.markdown(respuesta)
         else:
-            st.warning("Por favor, carga un documento PDF primero.")
+            texto_preprocesado = ""  # Sin contexto de PDF si no se carga un archivo
+
+        respuesta = obtener_respuesta(pregunta_usuario, texto_preprocesado, modelo, temperatura)
+        st.session_state.mensajes.append({"role": "assistant", "content": respuesta})
+        with st.chat_message("assistant"):
+            st.markdown(respuesta)
 
 if __name__ == "__main__":
     main()
-
-
