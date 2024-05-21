@@ -81,7 +81,7 @@ def main():
         st.subheader("🧠 Configuración del Modelo")
         modelo = st.selectbox(
             "Selecciona el modelo:",
-            ["gpt-3.5-turbo", "gpt-4"],
+            ["gpt-3.5-turbo", "gpt-4","gpt-4o","gpt-4-32k","gpt-4-32k","gpt-3.5-turbo-16k,"],
             index=0,
             help="Elige el modelo de lenguaje de OpenAI que prefieras."
         )
@@ -148,4 +148,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
